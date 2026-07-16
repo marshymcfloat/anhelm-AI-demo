@@ -98,6 +98,15 @@ describe('AppController (e2e)', () => {
       .expect('Access-Control-Allow-Origin', 'http://localhost:5174');
   });
 
+  it('allows CORS from tric.anhelm.dev', () => {
+    return request(app.getHttpServer())
+      .options('/brands')
+      .set('Origin', 'https://tric.anhelm.dev')
+      .set('Access-Control-Request-Method', 'GET')
+      .expect(204)
+      .expect('Access-Control-Allow-Origin', 'https://tric.anhelm.dev');
+  });
+
   it('/brands/tri-consulting-services/chat refuses unrelated requests', () => {
     return request(app.getHttpServer())
       .post('/brands/tri-consulting-services/chat')
