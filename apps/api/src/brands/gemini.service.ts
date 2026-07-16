@@ -130,24 +130,41 @@ export class GeminiService {
       throw new BadGatewayException('Gemini returned an empty response.');
     }
 
-    try {
-      const parsed = JSON.parse(text) as Partial<GeminiBrandResponse>;
-      if (
-        !['answered', 'refused', 'insufficient'].includes(
-          parsed.status ?? '',
-        ) ||
-        typeof parsed.answer !== 'string' ||
-        !parsed.answer.trim()
-      ) {
-        throw new Error('Invalid Gemini response.');
-      }
+    const normalized = text.trim();
+    const withoutFence = normalized
+      .replace(/^```(?:json)?\s*/i, '')
+      .replace(/\s*```$/i, '')
+      .trim();
+    const objectStart = withoutFence.indexOf('{');
+    const objectEnd = withoutFence.lastIndexOf('}');
+    const candidates = [
+      normalized,
+      withoutFence,
+      objectStart >= 0 && objectEnd > objectStart
+        ? withoutFence.slice(objectStart, objectEnd + 1)
+        : '',
+    ];
 
-      return {
-        status: parsed.status as GeminiBrandResponse['status'],
-        answer: parsed.answer.trim(),
-      };
-    } catch {
-      throw new BadGatewayException('Gemini returned an invalid response.');
+    for (const candidate of new Set(candidates.filter(Boolean))) {
+      try {
+        const parsed = JSON.parse(candidate) as Partial<GeminiBrandResponse>;
+        if (
+          ['answered', 'refused', 'insufficient'].includes(
+            parsed.status ?? '',
+          ) &&
+          typeof parsed.answer === 'string' &&
+          parsed.answer.trim()
+        ) {
+          return {
+            status: parsed.status as GeminiBrandResponse['status'],
+            answer: parsed.answer.trim(),
+          };
+        }
+      } catch {
+        // Try the next normalized JSON candidate.
+      }
     }
+
+    throw new BadGatewayException('Gemini returned an invalid response.');
   }
 }
