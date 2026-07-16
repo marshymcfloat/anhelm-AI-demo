@@ -1,0 +1,61 @@
+{
+  "id": "tri-consulting-services",
+  "displayName": "TRI Consulting Services",
+  "aliases": [
+    "TRI",
+    "TRI Consulting",
+    "TRI Consulting Services",
+    "Triconsulting"
+  ],
+  "enabled": true,
+  "refusalMessage": "I can only help with questions directly related to TRI Consulting Services.",
+  "insufficientInformationMessage": "I don't have verified information about that in TRI Consulting Services' approved business data.",
+  "relevance": {
+    "keywords": [
+      "tri",
+      "triconsulting",
+      "consulting services",
+      "shannon",
+      "neurodivergent",
+      "neurodiversity",
+      "adhd",
+      "autism",
+      "trauma",
+      "coaching",
+      "coach",
+      "therapy-informed",
+      "emotional regulation",
+      "authentic living",
+      "burnout",
+      "anxiety",
+      "depression",
+      "life transition",
+      "consultation",
+      "session",
+      "course",
+      "guide",
+      "workbook",
+      "toolkit",
+      "digital product",
+      "booking",
+      "payment",
+      "price",
+      "pricing",
+      "cost",
+      "contact",
+      "email",
+      "website",
+      "service",
+      "offer"
+    ],
+    "genericBrandQuestions": [
+      "what do you do",
+      "what can you help me with",
+      "what services do you provide",
+      "tell me about the business",
+      "tell me about this business",
+      "who are you",
+      "how can you help me"
+    ]
+  }
+}
