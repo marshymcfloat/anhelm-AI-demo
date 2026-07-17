@@ -19,6 +19,20 @@ describe('BrandKnowledgeService', () => {
     ).toBe(true);
   });
 
+  it('recognizes casual service and pricing questions', async () => {
+    const brand = await service.loadBrand('tri-consulting-services');
+
+    expect(
+      service.isRelevant(
+        'Hey, tell me the services you offer and their prices',
+        brand.config,
+      ),
+    ).toBe(true);
+    expect(
+      service.isRelevant('What are teh services you offer?', brand.config),
+    ).toBe(true);
+  });
+
   it('allows a simple greeting', async () => {
     const brand = await service.loadBrand('tri-consulting-services');
 

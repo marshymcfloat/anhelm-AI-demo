@@ -9,7 +9,7 @@
   ],
   "enabled": true,
   "refusalMessage": "I can only help with questions directly related to TRI Consulting Services.",
-  "insufficientInformationMessage": "I don't have verified information about that in TRI Consulting Services' approved business data.",
+  "insufficientInformationMessage": "I don't have that detail yet. Please contact TRI Consulting Services for the most current information.",
   "relevance": {
     "keywords": [
       "tri",
