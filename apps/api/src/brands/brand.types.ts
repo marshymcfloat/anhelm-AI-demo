@@ -26,7 +26,7 @@ export interface BrandAnswer {
   model?: string;
 }
 
-export interface GeminiBrandResponse {
+export interface ModelBrandResponse {
   status: BrandAnswerStatus;
   answer: string;
 }

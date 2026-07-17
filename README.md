@@ -16,8 +16,8 @@ npm install
 Copy-Item .env.example .env
 ```
 
-Set `GEMINI_API_KEY` in `.env` or in your shell environment. The default model
-is `gemini-3.5-flash` and can be changed with `GEMINI_MODEL`.
+Set `OPENAI_API_KEY` in `.env` or in your shell environment. The default model
+is `gpt-5-mini` and can be changed with `OPENAI_MODEL`.
 
 Create the local SQLite database:
 
@@ -92,7 +92,7 @@ SQLite stores conversations and messages. Verified brand knowledge remains in
 `data/brands`.
 
 The assistant uses only the approved files in the selected brand directory.
-Obvious unrelated requests are rejected before Gemini is called. Gemini must
+Obvious unrelated requests are rejected before OpenAI is called. OpenAI must
 also classify mixed, unrelated, and unsupported requests as refused or
 insufficient.
 

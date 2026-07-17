@@ -4,7 +4,7 @@ import { BrandChatService } from './brand-chat.service';
 import { BrandKnowledgeService } from './brand-knowledge.service';
 import { ConversationController } from './conversation.controller';
 import { ConversationService } from './conversation.service';
-import { GeminiService } from './gemini.service';
+import { OpenAIService } from './openai.service';
 
 @Module({
   controllers: [BrandChatController, ConversationController],
@@ -12,7 +12,7 @@ import { GeminiService } from './gemini.service';
     BrandChatService,
     BrandKnowledgeService,
     ConversationService,
-    GeminiService,
+    OpenAIService,
   ],
 })
 export class BrandsModule {}

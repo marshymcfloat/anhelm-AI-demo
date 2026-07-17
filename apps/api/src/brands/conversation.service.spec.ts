@@ -2,7 +2,7 @@ import { Test } from '@nestjs/testing';
 import { PrismaService } from '../database/prisma.service';
 import { BrandKnowledgeService } from './brand-knowledge.service';
 import { ConversationService } from './conversation.service';
-import { GeminiService } from './gemini.service';
+import { OpenAIService } from './openai.service';
 
 describe('ConversationService', () => {
   const prisma = {
@@ -21,8 +21,8 @@ describe('ConversationService', () => {
     isRelevant: jest.fn(),
   };
 
-  const geminiService = {
-    model: 'gemini-test',
+  const openAIService = {
+    model: 'openai-test',
     answer: jest.fn(),
   };
 
@@ -39,14 +39,14 @@ describe('ConversationService', () => {
           provide: BrandKnowledgeService,
           useValue: brandKnowledgeService,
         },
-        { provide: GeminiService, useValue: geminiService },
+        { provide: OpenAIService, useValue: openAIService },
       ],
     }).compile();
 
     service = moduleRef.get(ConversationService);
   });
 
-  it('passes stored messages to Gemini in chronological order', async () => {
+  it('passes stored messages to OpenAI in chronological order', async () => {
     const brand = {
       config: {
         id: 'tri-consulting-services',
@@ -81,7 +81,7 @@ describe('ConversationService', () => {
     prisma.$transaction.mockResolvedValue([]);
     brandKnowledgeService.loadBrand.mockResolvedValue(brand);
     brandKnowledgeService.isRelevant.mockReturnValue(true);
-    geminiService.answer.mockResolvedValue({
+    openAIService.answer.mockResolvedValue({
       status: 'answered',
       answer: 'Sessions start at $175.',
     });
@@ -92,7 +92,7 @@ describe('ConversationService', () => {
       'How much does coaching cost?',
     );
 
-    expect(geminiService.answer).toHaveBeenCalledWith(
+    expect(openAIService.answer).toHaveBeenCalledWith(
       'How much does coaching cost?',
       brand,
       [

@@ -39,7 +39,6 @@
     "test:e2e:worker": "jest --config ./apps/worker/test/jest-e2e.json"
   },
   "dependencies": {
-    "@google/genai": "^2.12.0",
     "@nestjs/common": "^11.0.1",
     "@nestjs/core": "^11.0.1",
     "@nestjs/platform-express": "^11.0.1",
@@ -47,6 +46,7 @@
     "@prisma/client": "^7.8.0",
     "better-sqlite3": "^12.11.1",
     "dotenv": "^17.4.2",
+    "openai": "^6.47.0",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.1"
   },

@@ -1,7 +1,7 @@
 import { Test } from '@nestjs/testing';
 import { BrandChatService } from './brand-chat.service';
 import { BrandKnowledgeService } from './brand-knowledge.service';
-import { GeminiService } from './gemini.service';
+import { OpenAIService } from './openai.service';
 import { BrandKnowledge } from './brand.types';
 
 describe('BrandChatService', () => {
@@ -27,8 +27,8 @@ describe('BrandChatService', () => {
     isRelevant: jest.fn(),
   };
 
-  const geminiService = {
-    model: 'gemini-test',
+  const openAIService = {
+    model: 'openai-test',
     answer: jest.fn(),
   };
 
@@ -45,8 +45,8 @@ describe('BrandChatService', () => {
           useValue: knowledgeService,
         },
         {
-          provide: GeminiService,
-          useValue: geminiService,
+          provide: OpenAIService,
+          useValue: openAIService,
         },
       ],
     }).compile();
@@ -54,7 +54,7 @@ describe('BrandChatService', () => {
     service = moduleRef.get(BrandChatService);
   });
 
-  it('refuses unrelated messages without calling Gemini', async () => {
+  it('refuses unrelated messages without calling OpenAI', async () => {
     knowledgeService.isRelevant.mockReturnValue(false);
 
     await expect(
@@ -64,12 +64,12 @@ describe('BrandChatService', () => {
       status: 'refused',
       answer: 'Brand questions only.',
     });
-    expect(geminiService.answer).not.toHaveBeenCalled();
+    expect(openAIService.answer).not.toHaveBeenCalled();
   });
 
   it('returns a grounded answer for an approved brand question', async () => {
     knowledgeService.isRelevant.mockReturnValue(true);
-    geminiService.answer.mockResolvedValue({
+    openAIService.answer.mockResolvedValue({
       status: 'answered',
       answer: 'TRI offers one-on-one coaching.',
     });
@@ -80,13 +80,13 @@ describe('BrandChatService', () => {
       brandId: 'tri-consulting-services',
       status: 'answered',
       answer: 'TRI offers one-on-one coaching.',
-      model: 'gemini-test',
+      model: 'openai-test',
     });
   });
 
   it('replaces model text with the configured insufficient-data message', async () => {
     knowledgeService.isRelevant.mockReturnValue(true);
-    geminiService.answer.mockResolvedValue({
+    openAIService.answer.mockResolvedValue({
       status: 'insufficient',
       answer: 'Untrusted model text',
     });
@@ -97,7 +97,7 @@ describe('BrandChatService', () => {
       brandId: 'tri-consulting-services',
       status: 'insufficient',
       answer: 'That information is not verified.',
-      model: 'gemini-test',
+      model: 'openai-test',
     });
   });
 });

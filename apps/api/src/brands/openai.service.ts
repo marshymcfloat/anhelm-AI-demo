@@ -1,13 +1,14 @@
 import {
   BadGatewayException,
   Injectable,
+  Logger,
   ServiceUnavailableException,
 } from '@nestjs/common';
-import { GoogleGenAI } from '@google/genai';
+import OpenAI from 'openai';
 import {
   BrandKnowledge,
   ConversationTurn,
-  GeminiBrandResponse,
+  ModelBrandResponse,
 } from './brand.types';
 
 const RESPONSE_SCHEMA = {
@@ -26,55 +27,52 @@ const RESPONSE_SCHEMA = {
 } as const;
 
 @Injectable()
-export class GeminiService {
-  readonly model = process.env.GEMINI_MODEL ?? 'gemini-3.5-flash';
+export class OpenAIService {
+  private readonly logger = new Logger(OpenAIService.name);
+  readonly model = process.env.OPENAI_MODEL ?? 'gpt-5-mini';
 
   async answer(
     message: string,
     brand: BrandKnowledge,
     history: ConversationTurn[] = [],
-  ): Promise<GeminiBrandResponse> {
-    const apiKey = process.env.GEMINI_API_KEY;
+  ): Promise<ModelBrandResponse> {
+    const apiKey = process.env.OPENAI_API_KEY;
     if (!apiKey) {
       throw new ServiceUnavailableException(
-        'GEMINI_API_KEY is not configured.',
+        'OPENAI_API_KEY is not configured.',
       );
     }
 
-    const ai = new GoogleGenAI({ apiKey });
+    const client = new OpenAI({ apiKey, maxRetries: 1, timeout: 30_000 });
 
-    for (let attempt = 0; attempt < 2; attempt += 1) {
-      try {
-        const response = await ai.models.generateContent({
-          model: this.model,
-          contents: this.createUserPrompt(message, brand.context, history),
-          config: {
-            systemInstruction: this.createSystemInstruction(brand),
-            temperature: 0,
-            maxOutputTokens: 1_200,
-            responseMimeType: 'application/json',
-            responseJsonSchema: RESPONSE_SCHEMA,
+    try {
+      const response = await client.responses.create({
+        model: this.model,
+        instructions: this.createSystemInstruction(brand),
+        input: this.createUserPrompt(message, brand.context, history),
+        max_output_tokens: 1_200,
+        text: {
+          format: {
+            type: 'json_schema',
+            name: 'brand_response',
+            strict: true,
+            schema: RESPONSE_SCHEMA,
           },
-        });
+        },
+      });
 
-        return this.parseResponse(response.text);
-      } catch (error) {
-        if (
-          error instanceof ServiceUnavailableException ||
-          (error instanceof BadGatewayException && attempt === 1)
-        ) {
-          throw error;
-        }
-
-        if (attempt === 1) {
-          throw new BadGatewayException(
-            'Gemini could not generate a response.',
-          );
-        }
+      return this.parseResponse(response.output_text);
+    } catch (error) {
+      if (error instanceof BadGatewayException) {
+        throw error;
       }
-    }
 
-    throw new BadGatewayException('Gemini could not generate a response.');
+      this.logger.error(
+        'OpenAI API request failed.',
+        error instanceof Error ? error.stack : String(error),
+      );
+      throw new BadGatewayException('OpenAI could not generate a response.');
+    }
   }
 
   private createSystemInstruction(brand: BrandKnowledge): string {
@@ -125,46 +123,27 @@ export class GeminiService {
     ].join('\n');
   }
 
-  private parseResponse(text: string | undefined): GeminiBrandResponse {
+  private parseResponse(text: string | undefined): ModelBrandResponse {
     if (!text) {
-      throw new BadGatewayException('Gemini returned an empty response.');
+      throw new BadGatewayException('OpenAI returned an empty response.');
     }
 
-    const normalized = text.trim();
-    const withoutFence = normalized
-      .replace(/^```(?:json)?\s*/i, '')
-      .replace(/\s*```$/i, '')
-      .trim();
-    const objectStart = withoutFence.indexOf('{');
-    const objectEnd = withoutFence.lastIndexOf('}');
-    const candidates = [
-      normalized,
-      withoutFence,
-      objectStart >= 0 && objectEnd > objectStart
-        ? withoutFence.slice(objectStart, objectEnd + 1)
-        : '',
-    ];
-
-    for (const candidate of new Set(candidates.filter(Boolean))) {
-      try {
-        const parsed = JSON.parse(candidate) as Partial<GeminiBrandResponse>;
-        if (
-          ['answered', 'refused', 'insufficient'].includes(
-            parsed.status ?? '',
-          ) &&
-          typeof parsed.answer === 'string' &&
-          parsed.answer.trim()
-        ) {
-          return {
-            status: parsed.status as GeminiBrandResponse['status'],
-            answer: parsed.answer.trim(),
-          };
-        }
-      } catch {
-        // Try the next normalized JSON candidate.
+    try {
+      const parsed = JSON.parse(text) as Partial<ModelBrandResponse>;
+      if (
+        ['answered', 'refused', 'insufficient'].includes(parsed.status ?? '') &&
+        typeof parsed.answer === 'string' &&
+        parsed.answer.trim()
+      ) {
+        return {
+          status: parsed.status as ModelBrandResponse['status'],
+          answer: parsed.answer.trim(),
+        };
       }
+    } catch {
+      // Fall through to a consistent upstream response error.
     }
 
-    throw new BadGatewayException('Gemini returned an invalid response.');
+    throw new BadGatewayException('OpenAI returned an invalid response.');
   }
 }

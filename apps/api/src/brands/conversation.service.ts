@@ -2,7 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { randomUUID } from 'node:crypto';
 import { PrismaService } from '../database/prisma.service';
 import { BrandKnowledgeService } from './brand-knowledge.service';
-import { GeminiService } from './gemini.service';
+import { OpenAIService } from './openai.service';
 import { BrandAnswer, ConversationTurn } from './brand.types';
 
 const HISTORY_LIMIT = 12;
@@ -12,7 +12,7 @@ export class ConversationService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly brandKnowledgeService: BrandKnowledgeService,
-    private readonly geminiService: GeminiService,
+    private readonly openAIService: OpenAIService,
   ) {}
 
   async create(brandId: string, visitorId?: string, title?: string) {
@@ -135,7 +135,7 @@ export class ConversationService {
       };
     }
 
-    const generated = await this.geminiService.answer(message, brand, history);
+    const generated = await this.openAIService.answer(message, brand, history);
     const answer =
       generated.status === 'refused'
         ? brand.config.refusalMessage
@@ -147,7 +147,7 @@ export class ConversationService {
       conversationId,
       answer,
       generated.status,
-      this.geminiService.model,
+      this.openAIService.model,
     );
 
     return {
@@ -156,7 +156,7 @@ export class ConversationService {
       brandId: conversation.brandId,
       status: generated.status,
       answer,
-      model: this.geminiService.model,
+      model: this.openAIService.model,
     };
   }
 

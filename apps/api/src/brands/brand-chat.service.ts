@@ -1,13 +1,13 @@
 import { Injectable } from '@nestjs/common';
 import { BrandKnowledgeService } from './brand-knowledge.service';
-import { GeminiService } from './gemini.service';
+import { OpenAIService } from './openai.service';
 import { BrandAnswer } from './brand.types';
 
 @Injectable()
 export class BrandChatService {
   constructor(
     private readonly brandKnowledgeService: BrandKnowledgeService,
-    private readonly geminiService: GeminiService,
+    private readonly openAIService: OpenAIService,
   ) {}
 
   async answer(brandId: string, message: string): Promise<BrandAnswer> {
@@ -21,14 +21,14 @@ export class BrandChatService {
       };
     }
 
-    const generated = await this.geminiService.answer(message, brand);
+    const generated = await this.openAIService.answer(message, brand);
 
     if (generated.status === 'refused') {
       return {
         brandId,
         status: 'refused',
         answer: brand.config.refusalMessage,
-        model: this.geminiService.model,
+        model: this.openAIService.model,
       };
     }
 
@@ -37,7 +37,7 @@ export class BrandChatService {
         brandId,
         status: 'insufficient',
         answer: brand.config.insufficientInformationMessage,
-        model: this.geminiService.model,
+        model: this.openAIService.model,
       };
     }
 
@@ -45,7 +45,7 @@ export class BrandChatService {
       brandId,
       status: 'answered',
       answer: generated.answer,
-      model: this.geminiService.model,
+      model: this.openAIService.model,
     };
   }
 }
